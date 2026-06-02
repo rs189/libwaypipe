@@ -32,6 +32,7 @@ int main() {
 	Waypipe *wp = waypipe_init();
 	if (!wp) { 
 		fprintf(stderr, "Waypipe init failed\n"); 
+
 		return 1; 
 	}
 
@@ -39,6 +40,7 @@ int main() {
 	if (rc != 0) {
 		fprintf(stderr, "Waypipe start timed out or failed (rc=%d). Is xdg-desktop-portal running and did you approve the dialogue?\n", rc);
 		waypipe_exit(wp);
+
 		return 2;
 	}	
 
@@ -54,5 +56,6 @@ int main() {
 	}	
 
 	waypipe_exit(wp);
+
 	return 0;
 }

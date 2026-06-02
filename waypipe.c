@@ -72,6 +72,7 @@ typedef struct StartWait {
 
 static void cleanup_appstate(Waypipe *s) {
     if (!s) return;
+
     if (s->pipeline) {
         gst_element_set_state(s->pipeline, GST_STATE_NULL);
         gst_object_unref(s->pipeline);
@@ -94,13 +95,16 @@ static GstFlowReturn on_new_sample(GstAppSink *appsink, gpointer user_data) {
     g_mutex_unlock(&s->lock);
 
     gst_sample_unref(sample);
+
     return GST_FLOW_OK;
 }
 
 static gboolean start_gst_pipeline(Waypipe *s) {
     if (!s) return FALSE;
+
     if (s->pw_fd < 0) {
         g_printerr("Invalid pipewire fd\n");
+
         return FALSE;
     }
 
@@ -115,6 +119,7 @@ static gboolean start_gst_pipeline(Waypipe *s) {
     if (!s->pipeline) {
         g_printerr("Failed to create pipeline: %s\n", err ? err->message : "(unknown)");
         g_clear_error(&err);
+
         return FALSE;
     }
 
@@ -123,6 +128,7 @@ static gboolean start_gst_pipeline(Waypipe *s) {
         g_printerr("Failed to get appsink element from pipeline\n");
         gst_object_unref(s->pipeline);
         s->pipeline = NULL;
+
         return FALSE;
     }
 
@@ -131,6 +137,7 @@ static gboolean start_gst_pipeline(Waypipe *s) {
     gst_object_unref(appsink);
 
     gst_element_set_state(s->pipeline, GST_STATE_PLAYING);
+
     return TRUE;
 }
 
@@ -143,6 +150,7 @@ static gboolean extract_first_node_id(GVariant *streams, guint *out_node) {
     GVariant *node_variant = g_variant_get_child_value(child, 0);
     if (!node_variant) {
         g_variant_unref(child);
+
         return FALSE;
     }
     guint node = g_variant_get_uint32(node_variant);
@@ -150,6 +158,7 @@ static gboolean extract_first_node_id(GVariant *streams, guint *out_node) {
 
     g_variant_unref(node_variant);
     g_variant_unref(child);
+
     return TRUE;
 }
 
@@ -223,11 +232,11 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
                 content[length-1] = '\0';
             }
             restore_token = content;
-            g_print("DEBUG: Using saved token: %s\n", restore_token);
+            g_print("Using saved token: %s\n", restore_token);
         } else {
             // No saved token, generate new one
             restore_token = g_uuid_string_random();
-            g_print("DEBUG: Generated new token: %s\n", restore_token);
+            g_print("Generated new token: %s\n", restore_token);
         }
     }
 
@@ -240,6 +249,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
             g_free(s->error_msg);
             s->error_msg = g_strdup("Failed to create XdpPortal");
             g_mutex_unlock(&s->lock);
+
             return -2;
         }
     }
@@ -277,6 +287,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         s->error_msg = g_strdup(w1.error->message);
         g_mutex_unlock(&s->lock);
         g_error_free(w1.error);
+
         return -2;
     }
     if (!s->session) {
@@ -285,6 +296,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         g_free(s->error_msg);
         s->error_msg = g_strdup("CreateSession returned no session");
         g_mutex_unlock(&s->lock);
+
         return -2;
     }
 
@@ -301,6 +313,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         s->error_msg = g_strdup(w2.error->message);
         g_mutex_unlock(&s->lock);
         g_error_free(w2.error);
+
         return -2;
     }
 
@@ -311,6 +324,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         g_free(s->error_msg);
         s->error_msg = g_strdup("xdp_session_get_streams returned NULL");
         g_mutex_unlock(&s->lock);
+
         return -2;
     }
 
@@ -322,6 +336,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         g_free(s->error_msg);
         s->error_msg = g_strdup("Failed to parse streams variant");
         g_mutex_unlock(&s->lock);
+
         return -2;
     }
     g_variant_unref(streams);
@@ -334,6 +349,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         g_free(s->error_msg);
         s->error_msg = g_strdup("xdp_session_open_pipewire_remote failed");
         g_mutex_unlock(&s->lock);
+
         return -2;
     }
     s->pw_fd = fd;
@@ -344,6 +360,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         g_free(s->error_msg);
         s->error_msg = g_strdup("Failed to start GStreamer pipeline");
         g_mutex_unlock(&s->lock);
+
         return -2;
     }
 
@@ -353,7 +370,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
         if (new_restore_token) {
             GError *error = NULL;
             if (!g_file_set_contents("waypipe_token.txt", new_restore_token, -1, &error)) {
-                g_print("DEBUG: Failed to save token: %s\n", error->message);
+                g_print("Failed to save token: %s\n", error->message);
                 g_error_free(error);
             }
             g_free(new_restore_token);
@@ -363,6 +380,7 @@ int waypipe_start(Waypipe *s, guint timeout_ms, gboolean persistent) {
     g_mutex_lock(&s->lock);
     s->started = TRUE;
     g_mutex_unlock(&s->lock);
+
     return 0;
 }
 
@@ -372,6 +390,7 @@ int waypipe_get_frame(Waypipe *s, guint8 **out_rgba, int *out_width, int *out_he
     g_mutex_lock(&s->lock);
     if (!s->last_sample) {
         g_mutex_unlock(&s->lock);
+
         return -2; // no frame yet
     }
     GstSample *sample = gst_sample_ref(s->last_sample);
@@ -402,6 +421,7 @@ int waypipe_get_frame(Waypipe *s, guint8 **out_rgba, int *out_width, int *out_he
     *out_width = width;
     *out_height = height;
     *out_stride = stride;
+
     return 0;
 }
 

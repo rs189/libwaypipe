@@ -30,6 +30,7 @@ int rc = waypipe_start(wp, 15000, 1);
 if (rc != 0) {
     fprintf(stderr, "Waypipe start timed out or failed (rc=%d). Is xdg-desktop-portal running and did you approve the dialogue?\n", rc);
     waypipe_exit(wp);
+
     return 2;
 }	
 
@@ -45,6 +46,7 @@ while (true) {
 }	
 
 waypipe_exit(wp);
+.
 return 0;
 ```
 
@@ -54,14 +56,14 @@ Install requiremed build dependencies:
 
 - Fedora:
 ```bash
-sudo dnf install libportal-devel glib2-devel gstreamer1-devel gstreamer1-plugins-base-devel gstreamer1-plugins-good-devel pkgconf-pkg-config
+sudo dnf install libportal-devel glib2-devel gstreamer1-devel gstreamer1-plugins-base-devel gstreamer1-plugins-good-devel pkgconf-pkg-config pipewire-devel
 ```
 
 Compile the shared library:
 
 ```bash
 gcc -fPIC -shared -o libwaypipe.so waypipe.c \
-  $(pkg-config --cflags --libs libportal gstreamer-1.0 gstreamer-app-1.0 glib-2.0 gio-2.0)
+  $(pkg-config --cflags --libs libportal gstreamer-1.0 gstreamer-app-1.0 glib-2.0 gio-2.0 libpipewire-0.3)
 ```
 
 To use libwaypipe system-wide, install `libwaypipe.so` to `/usr/local/lib` and run `sudo ldconfig`. Otherwise, set `LD_LIBRARY_PATH` to the folder containing `libwaypipe.so`.

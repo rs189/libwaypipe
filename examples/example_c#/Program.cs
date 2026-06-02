@@ -41,7 +41,8 @@ class WaypipeExample
 		IntPtr ctx = waypipe_init();
 		if (ctx == IntPtr.Zero)
 		{
-			Console.Error.WriteLine("Waypipe init failed\n"); 
+			Console.Error.WriteLine("Waypipe init failed\n");
+ 
 			return;
 		}
 
@@ -50,6 +51,7 @@ class WaypipeExample
 		{
 			Console.Error.WriteLine($"Waypipe start timed out or failed (rc={rc}). Is xdg-desktop-portal running and did you approve the dialogue?\n");
 			waypipe_exit(ctx);
+
 			return;
 		}
 
