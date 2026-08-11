@@ -46,7 +46,7 @@ while (true) {
 }	
 
 waypipe_exit(wp);
-.
+
 return 0;
 ```
 
