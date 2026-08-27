@@ -52,7 +52,7 @@ return 0;
 
 ## Build (shared library)
 
-Install requiremed build dependencies:
+Install required build dependencies:
 
 - Fedora:
 ```bash
